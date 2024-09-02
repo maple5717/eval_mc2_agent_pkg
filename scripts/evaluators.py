@@ -10,14 +10,14 @@ os.environ["NUMEXPR_NUM_THREADS"] = "1"
 os.environ["MKL_NUM_THREADS"] = "1"
 from cv_bridge import CvBridge, CvBridgeError
 import rospy
-import tf
+# import tf
 from sensor_msgs.msg import Image
 from message_filters import ApproximateTimeSynchronizer, Subscriber
 from cv_bridge import CvBridge, CvBridgeError
 import numpy as np 
 import tf.transformations as tft
 from nav_msgs.msg import Odometry
-from geometry_msgs.msg import Pose
+from geometry_msgs.msg import Pose, PoseWithCovarianceStamped
 
 
 def quaternion_to_rpy(q):
@@ -26,7 +26,7 @@ def quaternion_to_rpy(q):
     roll, pitch, yaw = tft.euler_from_quaternion([x, y, z, w])
     return roll, pitch, yaw
 
-
+aaa = True
 class Evaluator:
     def __init__(self, agent, action_freq=1/5):
         rospy.init_node('mc2_agent_evaluator', anonymous=True)
@@ -42,8 +42,9 @@ class Evaluator:
         # subscribers
         rgb_sub = Subscriber('/camera/camera/color/image_raw', Image)
         depth_sub = Subscriber('/camera/camera/aligned_depth_to_color/image_raw', Image)
+        # odom_sub = Subscriber('/poseupdate', PoseWithCovarianceStamped)
         odom_sub = Subscriber('/vins_estimator/odometry', Odometry)
-        self.tf_listener = tf.TransformListener()
+        # self.tf_listener = tf.TransformListener()
         rospy.Timer(rospy.Duration(1 / action_freq), self.__agent_callback)
         rospy.Timer(rospy.Duration(1), self.__watchdog_callback)
 
@@ -62,8 +63,10 @@ class Evaluator:
             self.start = 0
             
     def __agent_callback(self, event):
-        if self.start:
+        global aaa
+        if self.start and aaa:
             self.agent.act(self.obs)
+            # aaa = False
 
     def __load_init_obs(self):
         obs = Observations(gps=[0,0], compass=[0], rgb=[0], depth=[0]) 
@@ -131,6 +134,10 @@ class Evaluator:
         depth_img = depth_img.astype(np.float32) * 0.001
         # print(depth_img.min(), depth_img.max())
         self.__obs_generation(rgb_img, depth_img, odom.pose.pose)
+        
+        delay_ms = (rgb_msg.header.stamp.to_sec()-odom.header.stamp.to_sec())*1000
+        if delay_ms > 30:
+            print(delay_ms)
         # if "y" == input("continue?")
         #     agent.run()
         self.start = True
