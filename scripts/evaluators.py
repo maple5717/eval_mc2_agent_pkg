@@ -53,7 +53,7 @@ class Evaluator:
         rospy.Timer(rospy.Duration(1), self.__watchdog_callback)
         rospy.Timer(rospy.Duration(0.01), self.__tf_callback) 
 
-        self.source_frame = 'map'
+        self.source_frame = 'odom'
         self.target_frame = 'base_link'
 
         # Synchronizer with a queue size of 10 and 0.1s time tolerance
