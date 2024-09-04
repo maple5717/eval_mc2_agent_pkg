@@ -17,7 +17,7 @@ from cv_bridge import CvBridge, CvBridgeError
 import numpy as np 
 import tf.transformations as tft
 from nav_msgs.msg import Odometry
-from geometry_msgs.msg import Pose, PoseWithCovarianceStamped
+from geometry_msgs.msg import Pose, PoseWithCovarianceStamped, Twist
 
 
 def quaternion_to_rpy(q):
@@ -46,7 +46,8 @@ class Evaluator:
         # odom_sub = Subscriber('/vins_estimator/odometry', Odometry)
         odom_sub = Subscriber('/transformed_odom', Odometry)
         # self.tf_listener = tf.TransformListener()
-        rospy.Timer(rospy.Duration(1 / action_freq), self.__agent_callback)
+        # rospy.Timer(rospy.Duration(1 / action_freq), self.__agent_callback)
+        self.subb = rospy.Subscriber('/cmd_vel', Twist, self.__agent_callback)
         rospy.Timer(rospy.Duration(1), self.__watchdog_callback)
 
         # Synchronizer with a queue size of 10 and 0.1s time tolerance
@@ -71,7 +72,10 @@ class Evaluator:
 
     def __load_init_obs(self):
         obs = Observations(gps=[0,0], compass=[0], rgb=[0], depth=[0]) 
-        obs.camera_K = np.load("d435i_intrinsics.npy")
+        obs.camera_K = np.array([[605.2938, 0, 316.6696], 
+                                 [0, 605.4811, 236.8994], 
+                                 [0, 0, 1]])
+        # np.load("d435i_intrinsics.npy")
         
         task_obs = {"goal_name": 'Move knife from cabinet to table', 
                     'object_name': "knife",
