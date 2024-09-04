@@ -17,8 +17,8 @@ from cv_bridge import CvBridge, CvBridgeError
 import numpy as np 
 import tf.transformations as tft
 from nav_msgs.msg import Odometry
-from geometry_msgs.msg import Pose
-
+from geometry_msgs.msg import Pose, Twist
+import keyboard
 
 def quaternion_to_rpy(q):
     if isinstance(q, list):
@@ -49,7 +49,8 @@ class Evaluator:
         depth_sub = Subscriber('/camera/camera/aligned_depth_to_color/image_raw', Image)
         
         self.tf_listener = tf.TransformListener()
-        rospy.Timer(rospy.Duration(1 / action_freq), self.__agent_callback)
+        # rospy.Timer(rospy.Duration(1 / action_freq), self.__agent_callback)
+        self.subb = rospy.Subscriber('/cmd_vel', Twist, self.__agent_callback)
         rospy.Timer(rospy.Duration(1), self.__watchdog_callback)
         rospy.Timer(rospy.Duration(0.01), self.__tf_callback) 
 
