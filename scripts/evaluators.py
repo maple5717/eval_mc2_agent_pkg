@@ -93,7 +93,10 @@ class Evaluator:
 
     def __load_init_obs(self):
         obs = Observations(gps=[0,0], compass=[0], rgb=[0], depth=[0]) 
-        obs.camera_K = np.load("d435i_intrinsics.npy")
+        obs.camera_K = np.array([[605.2938, 0, 316.6696], 
+                                 [0, 605.4811, 236.8994], 
+                                 [0, 0, 1]])
+        # np.load("d435i_intrinsics.npy")
         
         task_obs = {"goal_name": 'Move knife from cabinet to table', 
                     'object_name': "knife",
